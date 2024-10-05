@@ -8,6 +8,7 @@ const babel = require('gulp-babel');
 const terser = require('gulp-terser');
 const browsersync = require('browser-sync').create();
 const ghPages = require('gh-pages'); // Import gulp-gh-pages
+const replace = require('gulp-replace');
 
 // Use dart-sass for @use
 // sass.compiler = require('dart-sass');
@@ -26,6 +27,20 @@ function jsTask() {
         .pipe(babel({ presets: ['@babel/preset-env'] }))
         .pipe(terser())
         .pipe(dest('dist', { sourcemaps: '.' }));
+}
+
+// HTML Task
+function htmlTask() {
+    return src('index.html')
+        .pipe(replace(/href="dist\/styles\.css"/g, 'href="styles.css"')) // Replace CSS path
+        .pipe(replace(/src="dist\/script\.js"/g, 'src="script.js"')) // Replace JS path
+        .pipe(dest('dist')); // Copy to dist folder
+}
+
+// Copy Images Task
+function imagesTask() {
+    return src('images/**/*') // Adjust the path to your images directory
+        .pipe(dest('dist/images')); // Copy images to dist/images
 }
 
 // Browsersync 
@@ -58,7 +73,7 @@ function watchTask() {
 }
 
 function deploy(done) {
-    ghPages.publish('dist', { branch: 'main' }, (err) => {
+    ghPages.publish('dist', { branch: 'deployment-branch' }, (err) => {
         if (err) {
             console.error('Deployment failed:', err);
             done(err); // Call done with error to indicate failure
